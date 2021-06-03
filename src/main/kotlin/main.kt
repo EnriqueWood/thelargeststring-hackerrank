@@ -28,58 +28,58 @@ Constraints
 The string s contains only lowercase English letters.
  */
 const val AMOUNT_OF_ENGLISH_LETTERS = 26
+const val LAST_ARRAY_INDEX = AMOUNT_OF_ENGLISH_LETTERS - 1
 const val FIRST_ENGLISH_LETTER = 'a'
 
 const val NOT_FOUND = -1
 
 fun main(args: Array<String>) {
-    val baccResult = solve("bacc", 2)
-    val zzzazzResult = solve("zzzazz", 2)
-    val axxzzxResult = solve("axxzzx", 2)
+    val baccResult = getLargestString("bacc", 2)
+    val zzzazzResult = getLargestString("zzzazz", 2)
+    val axxzzxResult = getLargestString("axxzzx", 2)
 
     println("Result for bacc: " + baccResult)
     println("Result for zzzazz: " + zzzazzResult)
-    println("Result for axxzzxResult: " + axxzzxResult)
+    println("Result for axxzzx: " + axxzzxResult)
 
     assert(baccResult == "ccba")
     assert(zzzazzResult == "zzazz")
     assert(axxzzxResult == "zzxxax")
 }
 
-fun solve(string: String, maxIdenticalConsecutiveLetters: Int): String {
+fun getLargestString(string: String, maxIdenticalConsecutiveLetters: Int): String {
     val solution = StringBuilder()
 
     // Each position of the array represents the amount of times a character from a to z appears in the string
     val letterAppearanceCounter = getAppearancesCounterArray(string)
 
-    val lastArrayIndex = AMOUNT_OF_ENGLISH_LETTERS - 1
-    for (i in lastArrayIndex downTo 0) {
-        var charAppearances = letterAppearanceCounter[i]
+    for (index in LAST_ARRAY_INDEX downTo 0) {
+        var charAppearances = letterAppearanceCounter[index]
         while (charAppearances > 0) {
             if (charAppearances <= maxIdenticalConsecutiveLetters) {
-                solution.append(getCharAt(i).toString().repeat(charAppearances))
+                solution.append(getLetterNTimes(getCharAt(index), charAppearances))
                 break
             }
+
             while (charAppearances > maxIdenticalConsecutiveLetters) {
-                solution.append(getCharAt(i).toString().repeat(maxIdenticalConsecutiveLetters))
+                solution.append(getLetterNTimes(getCharAt(index), maxIdenticalConsecutiveLetters))
                 charAppearances -= maxIdenticalConsecutiveLetters
 
-                val indexOfNextLetterWithAppearances =
-                    getIndexOfNextLetterWithAppearances(letterAppearanceCounter, i - 1)
-
-                if (indexOfNextLetterWithAppearances != NOT_FOUND) {
-                    solution.append(getCharAt(indexOfNextLetterWithAppearances))
-                    letterAppearanceCounter[indexOfNextLetterWithAppearances]--
-                } else {
+                val indexOfPreviousLetter = getIndexOfNextLetter(letterAppearanceCounter, index - 1)
+                if (indexOfPreviousLetter == NOT_FOUND) {
                     charAppearances = 0 //breaks the outer loop
+                    break
                 }
+
+                solution.append(getCharAt(indexOfPreviousLetter))
+                letterAppearanceCounter[indexOfPreviousLetter]--
             }
         }
     }
     return solution.toString()
 }
 
-private fun getAppearancesCounterArray(string: String): IntArray {
+fun getAppearancesCounterArray(string: String): IntArray {
     val letterAppearanceCounter = IntArray(AMOUNT_OF_ENGLISH_LETTERS)
     for (letter in string) {
         letterAppearanceCounter[letter - FIRST_ENGLISH_LETTER]++
@@ -87,11 +87,15 @@ private fun getAppearancesCounterArray(string: String): IntArray {
     return letterAppearanceCounter
 }
 
+fun getLetterNTimes(letter: Char, times: Int): String {
+    return letter.toString().repeat(times)
+}
+
 fun getCharAt(index: Int): Char {
     return FIRST_ENGLISH_LETTER + index
 }
 
-fun getIndexOfNextLetterWithAppearances(appearancesArray: IntArray, startingFrom: Int): Int {
+fun getIndexOfNextLetter(appearancesArray: IntArray, startingFrom: Int): Int {
     for (i in startingFrom downTo 0) {
         if (appearancesArray[i] > 0) {
             return i
